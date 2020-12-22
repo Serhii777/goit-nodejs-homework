@@ -1,6 +1,2 @@
-# goit-nodejs-homework
-Основная ветка: main.
-Ветки с homework: 
-hw01-node-basics,
-hw02-express,
+Ветка с homework-02: hw02-express
 
