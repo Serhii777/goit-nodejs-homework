@@ -81,7 +81,7 @@ class ContactController {
         tlds: { allow: ["com", "net"] },
       }),
       phone: Joi.string(),
-    });
+    }).min(1);
 
     const resultValidateContact = schemaValidateContact.validate(req.body);
 
