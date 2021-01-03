@@ -1,4 +1,4 @@
-const contacts = require("../db/contacts");
+const contacts = require("../db/contacts.json");
 const Joi = require("joi");
 
 class ContactController {
