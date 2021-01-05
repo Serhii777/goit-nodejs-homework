@@ -1,7 +1,7 @@
 {
   "name": "my_homework-node_js",
   "version": "1.0.0",
-  "description": "Ветка с homework-02: hw02-express",
+  "description": "Ветка с homework-03: hw03-mongodb",
   "main": "app.js",
   "dependencies": {
     "cors": "^2.8.5",
