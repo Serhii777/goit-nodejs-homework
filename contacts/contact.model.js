@@ -6,28 +6,13 @@ const contactSchema = new Schema({
   email: {
     type: String,
     validate: (value) => value.includes("@"),
-    unique: true,
     required: true,
   },
-  phone: { type: String, default: "098-789-78-78", required: true },
+  phone: { type: String, default: "000-000-0000", required: true },
   subscription: { type: String, default: "free", required: true },
   password: { type: String, default: "password", required: true },
-  token: { type: String, required: false },
+  token: { type: String, default: "free", required: false },
 });
-
-contactSchema.static.findContactByIdAndUpdate = findContactByIdAndUpdate;
-
-async function findContactByIdAndUpdate(contactId, updateParams) {
-  return this.findByIdAndUpdate(
-    contactId,
-    {
-      $set: updateParams,
-    },
-    {
-      new: true,
-    }
-  );
-}
 
 const contactModel = mongoose.model("Contact", contactSchema);
 

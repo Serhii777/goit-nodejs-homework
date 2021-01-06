@@ -1,6 +1,5 @@
-// const contacts = require("../db/contacts.json");
 const Joi = require("joi");
-const NotFoundError = require('../errors/NotFoundError');
+const NotFoundError = require("../errors/NotFoundError");
 const contactModel = require("./contact.model");
 
 const {
@@ -12,8 +11,7 @@ class ContactController {
     try {
       const contact = await contactModel.create(req.body);
 
-      // return ers.status(201).json(contact);
-      return ers.status(201).send({ message: "contact created" });
+      return res.status(201).send({ message: "contact created" });
     } catch (error) {
       next(error);
     }
@@ -36,7 +34,7 @@ class ContactController {
       const contact = await contactModel.findById(contactId);
 
       if (!contact) {
-        return status(404).send();
+        return status(404).json(contact);
       }
 
       return res.status(200).json(contact);
@@ -65,15 +63,18 @@ class ContactController {
     try {
       const contactId = req.params.id;
 
-      const contactToUpdate = await contactModel.findContactByIdAndUpdate(
+      const contactToUpdate = await contactModel.findByIdAndUpdate(
         contactId,
-        req.body
+        {
+          $set: req.body,
+        },
+        {
+          new: true,
+        }
       );
       if (!contactToUpdate) {
-        // return res.status(404).send();
-      throw new NotFoundError();
+        throw new NotFoundError();
       }
-      // return res.status(200).json(contactToUpdate);
       return res.status(200).send({ message: "contact updated" });
     } catch (error) {
       next(error);
@@ -98,7 +99,6 @@ class ContactController {
     const resultValidate = schemaValidate.validate(req.body);
 
     if (resultValidate.error) {
-      // return res.status(400).send({ message: "missing required name field" });
       return res.status(400).send(resultValidate.error);
     }
 
@@ -121,7 +121,6 @@ class ContactController {
     const resultValidateContact = schemaValidateContact.validate(req.body);
 
     if (resultValidateContact.error) {
-      // return res.status(400).send({ message: "missing fields" });
       return res.status(400).send(resultValidateContact.error);
     }
 
@@ -131,8 +130,7 @@ class ContactController {
   validateContactById(req, res, next) {
     const { id } = req.params;
 
-    if (!Object.isValid(id)) {
-      // return res.status(400).send();
+    if (!ObjectId.isValid(id)) {
       throw new NotFoundError();
     }
     next();

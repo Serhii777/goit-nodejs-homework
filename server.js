@@ -1,11 +1,11 @@
 const express = require("express");
-const cors = require("cors");
 const mongoose = require("mongoose");
+const cors = require("cors");
 const contactRouter = require("./contacts/contact.router");
 
 require("dotenv").config();
 
-module.exports = class ContactsServer {
+module.exports = class ContactServer {
   constructor() {
     this.server = null;
   }
@@ -24,22 +24,33 @@ module.exports = class ContactsServer {
 
   initMiddleware() {
     this.server.use(express.json());
-    this.server.use(cors({ origin: "http://localhost: 3000" }));
+    this.server.use(cors({ origin: "http://localhost:3000" }));
   }
 
   initRoutes() {
-    this.server.use("./contacts", contactRouter);
+    this.server.use("/contacts", contactRouter);
   }
 
   async initDatabase() {
-    await mongoose.connect(process.env.MONGODB_URL);
+    try {
+      const options = {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      };
+
+      await mongoose.connect(process.env.MONGODB_URL, options);
+      console.log("Database connection successful");
+    } catch (error) {
+      console.log(error);
+      process.exit(1);
+    }
   }
 
-  startListening(){
+  startListening() {
     const PORT = process.env.PORT;
-    
-    this.server.listen(PORT, ()=>{
-      console.log("Server listening on port:", PORT);
-    })
+
+    this.server.listen(PORT, () => {
+      console.log("Server started listening on potr", PORT);
+    });
   }
-}
+};
