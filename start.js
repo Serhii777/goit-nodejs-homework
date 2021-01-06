@@ -1,6 +1,7 @@
-const ContactsServer = require("./server");
+// const ContactsServer = require("./server");
+const ContactServer = require("./server-mongoose");
 
-new ContactsServer().start();
+new ContactServer().start();
 
 
 //* Запуск: nodemon start

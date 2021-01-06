@@ -1,6 +1,6 @@
 // const contacts = require("../db/contacts.json");
 const Joi = require("joi");
-// Joi.objectid = require('joi-objectid')(Joi);
+const NotFoundError = require('../errors/NotFoundError');
 const contactModel = require("./contact.model");
 
 const {
@@ -10,9 +10,10 @@ const {
 class ContactController {
   async createContact(req, res, next) {
     try {
-      const contact = await contactModel.crete(req.body);
+      const contact = await contactModel.create(req.body);
 
-      return ers.status(201).json(contact);
+      // return ers.status(201).json(contact);
+      return ers.status(201).send({ message: "contact created" });
     } catch (error) {
       next(error);
     }
@@ -64,14 +65,16 @@ class ContactController {
     try {
       const contactId = req.params.id;
 
-      const updateResult = await contactModel.findContactByIdAndUpdate(
+      const contactToUpdate = await contactModel.findContactByIdAndUpdate(
         contactId,
         req.body
       );
-      if (!updateResult) {
-        return res.status(404).send();
+      if (!contactToUpdate) {
+        // return res.status(404).send();
+      throw new NotFoundError();
       }
-      return res.status(200).json(updatedContact);
+      // return res.status(200).json(contactToUpdate);
+      return res.status(200).send({ message: "contact updated" });
     } catch (error) {
       next(error);
     }
@@ -95,7 +98,8 @@ class ContactController {
     const resultValidate = schemaValidate.validate(req.body);
 
     if (resultValidate.error) {
-      return res.status(400).send({ message: "missing required name field" });
+      // return res.status(400).send({ message: "missing required name field" });
+      return res.status(400).send(resultValidate.error);
     }
 
     next();
@@ -109,15 +113,16 @@ class ContactController {
         tlds: { allow: ["com", "net"] },
       }),
       phone: Joi.string(),
-      subscription: Joi.string().required(),
-      password: Joi.string().required(),
-      token: Joi.string().required(),
+      subscription: Joi.string(),
+      password: Joi.string(),
+      token: Joi.string(),
     }).min(1);
 
     const resultValidateContact = schemaValidateContact.validate(req.body);
 
     if (resultValidateContact.error) {
-      return res.status(400).send({ message: "missing fields" });
+      // return res.status(400).send({ message: "missing fields" });
+      return res.status(400).send(resultValidateContact.error);
     }
 
     next();
@@ -127,7 +132,8 @@ class ContactController {
     const { id } = req.params;
 
     if (!Object.isValid(id)) {
-      return res.status(400).send();
+      // return res.status(400).send();
+      throw new NotFoundError();
     }
     next();
   }

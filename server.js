@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
-const contactRouter = require("./contacts/contact.routes");
+const contactRouter = require("./contacts/contact.router");
 
 require("dotenv").config();
 
