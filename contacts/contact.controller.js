@@ -93,7 +93,6 @@ class ContactController {
       phone: Joi.string().required(),
       subscription: Joi.string().required(),
       password: Joi.string().required(),
-      token: Joi.string().required(),
     });
 
     const resultValidate = schemaValidate.validate(req.body);
@@ -115,7 +114,6 @@ class ContactController {
       phone: Joi.string(),
       subscription: Joi.string(),
       password: Joi.string(),
-      token: Joi.string(),
     }).min(1);
 
     const resultValidateContact = schemaValidateContact.validate(req.body);
