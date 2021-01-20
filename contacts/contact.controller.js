@@ -1,5 +1,5 @@
 const Joi = require("joi");
-const NotFoundError = require("../errors/NotFoundError");
+const NotFoundError = require("../errors/error.constructor");
 const contactModel = require("./contact.model");
 
 const {

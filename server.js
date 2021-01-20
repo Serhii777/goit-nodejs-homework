@@ -1,6 +1,8 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const authRouter = require("./users/auth.router");
+const userRouter = require("./users/user.router");
 const contactRouter = require("./contacts/contact.router");
 
 require("dotenv").config();
@@ -28,6 +30,8 @@ module.exports = class ContactServer {
   }
 
   initRoutes() {
+    this.server.use("/auth", authRouter);
+    this.server.use("/users", userRouter);
     this.server.use("/contacts", contactRouter);
   }
 
@@ -36,6 +40,8 @@ module.exports = class ContactServer {
       const options = {
         useNewUrlParser: true,
         useUnifiedTopology: true,
+        useFindAndModify: false,
+        useCreateIndex: true,
       };
 
       await mongoose.connect(process.env.MONGODB_URL, options);
