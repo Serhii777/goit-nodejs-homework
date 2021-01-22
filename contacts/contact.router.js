@@ -10,6 +10,7 @@ contactRouter.post(
 );
 
 contactRouter.get("/", contactController.getContacts);
+
 contactRouter.get(
   "/:id",
   contactController.validateContactById,
