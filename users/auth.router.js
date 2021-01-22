@@ -1,17 +1,17 @@
 const { Router } = require("express");
 const router = Router();
 
-const authController = require("../users/auth.controller");
-const { authorizeUser } = require("../users/middlewares/authMiddlewares");
+const authController = require("./auth.controller");
+const userController = require("./user.controller");
 
 router.post(
-  "/auth/register",
+  "/register",
   authController.validateCreateUser,
   authController.createUser
 );
 
-router.put("/auth/login", authController.validateLogin, authController.login);
+router.put("/login", authController.validateLogin, authController.login);
 
-router.patch("/auth/logout", authorizeUser, authController.logout);
+router.patch("/logout", userController.authorizeUser, authController.logout);
 
 module.exports = router;

@@ -1,7 +1,9 @@
 // const { User } = require("./user.model");
-const userModel = require("./user.model");
+const Joi = require("joi");
 const bcrypt = require("bcrypt");
-const { prepareUsersResponse } = require("./user.controller");
+const jwt = require("jsonwebtoken");
+const userModel = require("./user.model");
+const userController = require("./user.controller");
 
 class AuthController {
   constructor() {
@@ -16,32 +18,24 @@ class AuthController {
     try {
       const { email, password } = req.body;
 
-      console.log(email, password);
-
       const passwordHash = await bcrypt.hash(password, this._costFactor);
 
       const existingUser = await userModel.findUserByEmail(email);
+
       if (existingUser) {
-        return res.status(409).send("User with such email already exists");
-        // .send({ message: `User with such email ${email} already exists!` });
-        //   .send({ message: "User with such email already exists"});
+        return res
+          .status(409)
+          .send({ message: `User with such email ${email} already exists!` });
       }
 
       const user = await userModel.create({
-        // ...req.body,
-        email,
+        ...req.body,
         password: passwordHash,
       });
 
-      console.log(user);
-
-      //   res.status(201).json({ message: "Successfull registration!" });
-      // return res.status(201).json({
-      //   id: user._id,
-      //   email: user.email,
-      // });
-
-      return res.status(201).json(prepareUsersResponse(user));
+      return res
+        .status(201)
+        .json({ message: `email ${user.email} registered successfully!` });
     } catch (error) {
       next(error);
     }
@@ -52,6 +46,7 @@ class AuthController {
       const { email, password } = req.body;
 
       const user = await userModel.findUserByEmail(email);
+
       if (!user) {
         return res.status(401).send({
           message: `No users with username ${user} found!`,
@@ -63,18 +58,22 @@ class AuthController {
         return res.status(401).send({ message: "Wrong password!" });
       }
 
-      const token = await jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+      const token = await jwt.sign(
+        {
+          id: user._id,
+        },
+        process.env.JWT_SECRET
+      );
 
-      const updateUserData = await userModel.updateToken(user._id, token);
+      const updatedUser = await userModel.updateToken(user._id, token);
 
       return res.status(200).json({
-        message: "Successfull authorization",
         token,
         user: {
-          ...prepareUsersResponse(updateUserData),
+          ...userController.prepareResponse(updatedUser),
         },
       });
-    } catch (error) { 
+    } catch (error) {
       next(error);
     }
   }
@@ -85,7 +84,9 @@ class AuthController {
 
       await userModel.updateToken(user._id, null);
 
-      return res.status(204).json({ message: "Logout done successfully" });
+      return res
+        .status(200)
+        .send({ message: `User ${user.email} is logged out` });
     } catch (error) {
       next(error);
     }
@@ -95,7 +96,6 @@ class AuthController {
     const validationRules = Joi.object({
       email: Joi.string().required(),
       password: Joi.string().required(),
-      // subscription: Joi.string().required(),
     });
 
     const validationResult = validationRules.validate(req.body);
