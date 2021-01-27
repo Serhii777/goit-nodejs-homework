@@ -18,8 +18,6 @@ class AuthController {
     try {
       const { email, password } = req.body;
 
-      const passwordHash = await bcrypt.hash(password, this._costFactor);
-
       const existingUser = await userModel.findUserByEmail(email);
 
       if (existingUser) {
@@ -27,6 +25,8 @@ class AuthController {
           .status(409)
           .send({ message: `User with such email ${email} already exists!` });
       }
+
+      const passwordHash = await bcrypt.hash(password, this._costFactor);
 
       const user = await userModel.create({
         ...req.body,

@@ -171,7 +171,7 @@ class UserController {
     const validationRules = Joi.object({
       email: Joi.string(),
       password: Joi.string(),
-    });
+    }).min(1);
 
     const validationResult = validationRules.validate(req.body);
     if (validationResult.error) {
