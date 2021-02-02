@@ -2,6 +2,10 @@
 const Joi = require("joi");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const fs = require("fs");
+const https = require("https");
+
+const { AvatarGenerator } = require("random-avatar-generator");
 const userModel = require("./user.model");
 const userController = require("./user.controller");
 
@@ -18,8 +22,6 @@ class AuthController {
     try {
       const { email, password } = req.body;
 
-      const passwordHash = await bcrypt.hash(password, this._costFactor);
-
       const existingUser = await userModel.findUserByEmail(email);
 
       if (existingUser) {
@@ -28,14 +30,28 @@ class AuthController {
           .send({ message: `User with such email ${email} already exists!` });
       }
 
+      const passwordHash = await bcrypt.hash(password, this._costFactor);
+
+      const generator = new AvatarGenerator();
+      const userAvatar = await generator.generateRandomAvatar();
+
       const user = await userModel.create({
         ...req.body,
         password: passwordHash,
+        avatarURL: userAvatar,
       });
 
-      return res
-        .status(201)
-        .json({ message: `email ${user.email} registered successfully!` });
+      const file = fs.createWriteStream(`public/images/${user._id}.svg`);
+      https.get(userAvatar, function (res) {
+        res.pipe(file);
+      });
+
+      return res.status(201).json({
+        id: user._id,
+        email: user.email,
+        avatarURL: user.avatarURL,
+        path: file.path,
+      });
     } catch (error) {
       next(error);
     }

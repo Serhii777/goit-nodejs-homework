@@ -1,16 +1,18 @@
-// const mongoose = require("mongoose");
+const { promises: fsPromises } = require("fs");
+const path = require("path");
+
 const userModel = require("./user.model");
 const Joi = require("joi");
 const jwt = require("jsonwebtoken");
 
 const _ = require("lodash");
+require("dotenv").config();
 
 const {
   NotFoundError,
   UnauthorizedError,
 } = require("../errors/error.constructor");
 
-// Joi.objectId = require("joi-objectid")(Joi);
 const {
   Types: { ObjectId },
 } = require("mongoose");
@@ -41,6 +43,7 @@ class UserController {
   async _getUserById(req, res, next) {
     try {
       const userId = req.params.id;
+
       const user = await userModel.findById(userId);
 
       if (!user) {
@@ -71,17 +74,27 @@ class UserController {
         throw new UnauthorizedError("User not authorized Header");
       }
 
-      const token = authorizationHeader.replace("Bearer ", "");
+      const token = await authorizationHeader.replace("Bearer ", "");
 
       if (!token) {
         res.status(401).json({ message: "No JWT token found in header" });
       }
 
-      let userId;
-      try {
-        userId = await jwt.verify(token, process.env.JWT_SECRET).id;
-      } catch (err) {
-        next(new UnauthorizedError("User not authorized JWT"));
+      const decodedToken = await jwt.verify(
+        token,
+        process.env.JWT_SECRET,
+        function (err, decodedToken) {
+          if (err) {
+            new UnauthorizedError("User not authorized");
+          }
+          return decodedToken;
+        }
+      );
+
+      const { id: userId } = decodedToken;
+
+      if (!userId) {
+        throw new UnauthorizedError("User not authorized");
       }
 
       const user = await userModel.findById(userId);
@@ -101,7 +114,7 @@ class UserController {
 
   async updateUser(req, res, next) {
     try {
-      const userId = req.params.id;
+      const { _id: userId } = req.user;
 
       const userToUpdate = await userModel.findUserByIdAndUpdate(
         userId,
@@ -113,6 +126,39 @@ class UserController {
       }
 
       return res.status(200).send({ message: `User ${userToUpdate} updated` });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async updateUserAvatar(req, res, next) {
+    try {
+      const { _id: userId } = req.user;
+      const { filename } = req.file;
+
+      // const newFileName = `${userId}` + `.${filename.slice(-3)}`;
+
+      const avatarToUpdate = await userModel.findByIdAndUpdate(
+        userId,
+        {
+          $set: {
+            avatarURL: `http://localhost:${process.env.PORT}/images/${filename}`,
+          },
+        },
+        {
+          new: true,
+        }
+      );
+
+      console.log("avatarToUpdate:", avatarToUpdate);
+
+      if (!avatarToUpdate) {
+        throw new NotFoundError("User not authorized");
+      }
+
+      return res.status(200).send({
+        message: `User (${avatarToUpdate.email}) has successfully updated his AvatarURL (${avatarToUpdate.avatarURL})!`,
+      });
     } catch (error) {
       next(error);
     }
@@ -132,7 +178,7 @@ class UserController {
       }
 
       return res.status(200).send({
-        message: `Subscription of user (${subscriptionToUpdate.email}) has been updated`,
+        message: `User (${subscriptionToUpdate.email}) has successfully updated his Subscription: (${subscriptionToUpdate.subscription})`,
       });
     } catch (error) {
       next();
@@ -141,13 +187,19 @@ class UserController {
 
   async deleteUserById(req, res, next) {
     try {
-      const userId = req.params.id;
+      const { _id: userId } = req.user;
 
       const deleteUser = await userModel.findByIdAndDelete(userId);
 
       if (!deleteUser) {
         throw new NotFoundError("User not found");
       }
+
+      const filePath = `../public/images/${deleteUser._id}.svg`; //* (.jpg .png)
+
+      const avatarDel = path.join(__dirname, filePath);
+
+      await fsPromises.unlink(avatarDel);
 
       return res
         .status(200)
@@ -171,7 +223,8 @@ class UserController {
     const validationRules = Joi.object({
       email: Joi.string(),
       password: Joi.string(),
-    });
+      subscription: Joi.string().valid("free", "pro", "premium"),
+    }).min(1);
 
     const validationResult = validationRules.validate(req.body);
     if (validationResult.error) {
@@ -181,9 +234,9 @@ class UserController {
     next();
   }
 
-  validateUpdateSubscription(req, res, next) {
+  validateUpdateAvatar(req, res, next) {
     const validationRules = Joi.object({
-      subscription: Joi.string().valid("free", "pro", "premium").required(),
+      avatarURL: Joi.string(),
     });
 
     const validationResult = validationRules.validate(req.body);
@@ -196,13 +249,17 @@ class UserController {
 
   prepareUsersResponse = (users) => {
     return users.map((user) => {
-      const { email, subscription, _id } = user;
+      const { email, subscription, _id, avatarURL } = user;
 
-      return { id: _id, email, subscription };
+      return { id: _id, email, subscription, avatarURL };
     });
   };
 
-  prepareResponse = ({ email, subscription }) => ({ email, subscription });
+  prepareResponse = ({ email, subscription, avatarURL }) => ({
+    email,
+    subscription,
+    avatarURL,
+  });
 }
 
 module.exports = new UserController();
