@@ -5,7 +5,7 @@ const userModel = require("./user.model");
 const Joi = require("joi");
 const jwt = require("jsonwebtoken");
 
-const _ = require("lodash");
+// const _ = require("lodash");
 require("dotenv").config();
 
 const {
@@ -43,6 +43,8 @@ class UserController {
   async _getUserById(req, res, next) {
     try {
       const userId = req.params.id;
+
+      console.log("req.userById:", req.user);
 
       const user = await userModel.findById(userId);
 
@@ -149,8 +151,6 @@ class UserController {
           new: true,
         }
       );
-
-      console.log("avatarToUpdate:", avatarToUpdate);
 
       if (!avatarToUpdate) {
         throw new NotFoundError("User not authorized");
