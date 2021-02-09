@@ -2,7 +2,8 @@ const { Router } = require("express");
 const router = Router();
 
 const userController = require("./user.controller");
-const { uploadFile, upload, minifyImage } = require("./file.controller");
+const userValidator = require("./user.validator");
+const { uploadFile, upload, minifyImage } = require("../files/file.controller");
 const { asyncWrapper } = require("../helpers/helpers");
 
 router.get(
@@ -14,7 +15,7 @@ router.get(
 router.patch(
   "/user",
   userController.authorizeUser,
-  userController.validateUpdateUser,
+  userValidator.validateUpdateUser,
   userController.updateSubscription
 );
 
@@ -23,7 +24,7 @@ router.patch(
   userController.authorizeUser,
   uploadFile,
   minifyImage,
-  userController.validateUpdateAvatar,
+  userValidator.validateUpdateAvatar,
   userController.updateUserAvatar,
   asyncWrapper(upload)
 );
@@ -39,7 +40,7 @@ router.get(
 router.put(
   "/:id",
   userController.authorizeUser,
-  userController.validateUpdateUser,
+  userValidator.validateUpdateUser,
   userController.updateUser
 );
 
