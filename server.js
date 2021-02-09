@@ -1,12 +1,17 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const authRouter = require("./users/auth.router");
-const userRouter = require("./users/user.router");
-const contactRouter = require("./contacts/contact.router");
-const fileRouter = require("./users/file.router");
+const sgMail = require("@sendgrid/mail");
 
 require("dotenv").config();
+
+const authRouter = require("./auth/auth.router");
+const userRouter = require("./users/user.router");
+const fileRouter = require("./files/file.router");
+const contactRouter = require("./contacts/contact.router");
+
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
 
 module.exports = class ContactServer {
   constructor() {
@@ -66,13 +71,14 @@ module.exports = class ContactServer {
 
 //* npm run start
 
-//* POST http://localhost:3000/auth/register   // registeration new user
-//* PUT http://localhost:3000/auth/login       // login user
-//* PATCH http://localhost:3000/auth/logout    // logout user
+//* POST http://localhost:3000/auth/sign-up   // registeration new user
+//* PUT http://localhost:3000/auth/sign-in    // login user
+//* GET http://localhost:3000/auth/verify/:verificationToken  // verify Email user
+//* PATCH http://localhost:3000/auth/logout   // logout user
 
 //* GET http://localhost:3000/users            // get all users
 //* GET http://localhost:3000/users/current    // get current user
-//* PATCH http://localhost:3000/users/user    // update subscription
+//* PATCH http://localhost:3000/users/user     // update subscription
 //* GET http://localhost:3000/users/id         // get user by ID
 //* PUT http://localhost:3000/users/id         // update user by ID
 //* DELETE http://localhost:3000/users/id      // delete user by ID
